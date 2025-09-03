@@ -1,0 +1,281 @@
+# WordPress QA Test Suite - .gitignore
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+playwright-report-*/
+
+# Test artifacts
+screenshots/
+videos/
+traces/
+test-results/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webm
+*.mp4
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Grunt intermediate storage
+.grunt
+
+# Bower dependency directory
+bower_components
+
+# node-waf configuration
+.lock-wscript
+
+# Compiled binary addons
+build/Release
+
+# Dependency directories
+jspm_packages/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Gatsby files
+.cache/
+public
+
+# Storybook build outputs
+.out
+.storybook-out
+
+# Temporary folders
+tmp/
+temp/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# WordPress specific (if testing against local WordPress)
+wp-config.php
+wp-content/uploads/
+wp-content/cache/
+wp-content/backup-db/
+wp-content/advanced-cache.php
+wp-content/wp-cache-config.php
+wp-content/cache/
+wp-content/upgrade/
+
+# Database dumps
+*.sql
+*.sql.gz
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Test credentials (security)
+credentials.json
+secrets.json
+*.key
+*.pem
+*.crt
+
+# Local configuration files
+local-config.js
+local-config.json
+
+# Test data
+test-data/
+sample-data/
+
+# Performance test results
+performance-results/
+load-test-results/
+
+# Security scan results
+security-scan-results/
+vulnerability-reports/
+
+# Custom test reports
+custom-reports/
+qa-reports/
+
+# Browser downloads
+downloads/
+
+# Playwright specific
+playwright/.cache/
+playwright-report/
+test-results/
+blob-report/
+
+# CI/CD artifacts
+.github/workflows/artifacts/
+ci-artifacts/
+
+# Documentation build
+docs/_build/
+site/
+
+# Python (if using any Python tools)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Ruby (if using any Ruby tools)
+*.gem
+*.rbc
+/.config
+/coverage/
+/InstalledFiles
+/pkg/
+/spec/reports/
+/spec/examples.txt
+/test/tmp/
+/test/version_tmp/
+/tmp/
+
+# Java (if using any Java tools)
+*.class
+*.log
+*.ctxt
+.mtj.tmp/
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+hs_err_pid*
+
+# Go (if using any Go tools)
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+
+# Rust (if using any Rust tools)
+/target/
+**/*.rs.bk
+Cargo.lock
+
+# PHP (if testing PHP components)
+vendor/
+composer.lock
+.phpunit.result.cache
+
+# Keep important files
+!README.md
+!README-QA-Tests.md
+!WordPress_QA_Test_Report.md
+!WordPress_QA_Test_Suite_Summary.md
+!package.json
+!playwright.config.js
+!run-qa-tests.sh
+!run-quick-tests.sh
+!.github/workflows/wordpress-qa.yml
+!tests/
+!tests/**/*.js
+!tests/**/*.spec.js

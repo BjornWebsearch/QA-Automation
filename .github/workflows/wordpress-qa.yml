@@ -1,0 +1,81 @@
+name: WordPress QA Tests
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  wordpress-qa:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Install Playwright browsers
+      run: npx playwright install --with-deps ${{ matrix.browser }}
+      
+    - name: Run WordPress QA tests
+      run: npx playwright test --project=${{ matrix.browser }}
+      env:
+        WP_BASE_URL: ${{ secrets.WP_BASE_URL || 'https://beratta.websearchpro.net' }}
+        WP_ADMIN_USER: ${{ secrets.WP_ADMIN_USER || 'admin' }}
+        WP_ADMIN_PASS: ${{ secrets.WP_ADMIN_PASS || 'taJdMiIvQdht4XGO%!ycgk6Z' }}
+        
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report-${{ matrix.browser }}
+        path: test-results/
+        retention-days: 30
+        
+    - name: Upload screenshots
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: screenshots-${{ matrix.browser }}
+        path: test-results/screenshots/
+        retention-days: 7
+
+  wordpress-qa-summary:
+    runs-on: ubuntu-latest
+    needs: wordpress-qa
+    if: always()
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      
+    - name: Generate QA Report
+      run: |
+        echo "# WordPress QA Test Results" > qa-summary.md
+        echo "## Test Execution Summary" >> qa-summary.md
+        echo "- **Date:** $(date)" >> qa-summary.md
+        echo "- **Branch:** ${{ github.ref_name }}" >> qa-summary.md
+        echo "- **Commit:** ${{ github.sha }}" >> qa-summary.md
+        echo "" >> qa-summary.md
+        echo "## Browser Test Results" >> qa-summary.md
+        echo "- Chromium: ${{ needs.wordpress-qa.result }}" >> qa-summary.md
+        echo "- Firefox: ${{ needs.wordpress-qa.result }}" >> qa-summary.md
+        echo "- WebKit: ${{ needs.wordpress-qa.result }}" >> qa-summary.md
+        
+    - name: Upload QA Summary
+      uses: actions/upload-artifact@v4
+      with:
+        name: qa-summary
+        path: qa-summary.md
+        retention-days: 30
