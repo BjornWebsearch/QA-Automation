@@ -22,12 +22,13 @@ jobs:
         node-version: '18'
         cache: 'npm'
         
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Install Playwright browsers
-      run: npx playwright install --with-deps ${{ matrix.browser }}
-      
+    - name: Install dependencies and Playwright browsers
+      run: |
+        npm ci
+        npx playwright install ${{ matrix.browser }}
+      env:
+        PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: false
+
     - name: Run WordPress QA tests
       run: npx playwright test --project=${{ matrix.browser }}
       env:
@@ -57,9 +58,14 @@ jobs:
     if: always()
     
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
     - name: Download all artifacts
       uses: actions/download-artifact@v4
-      
+      with:
+        path: artifacts
+
     - name: Generate QA Report
       run: |
         echo "# WordPress QA Test Results" > qa-summary.md
@@ -69,9 +75,16 @@ jobs:
         echo "- **Commit:** ${{ github.sha }}" >> qa-summary.md
         echo "" >> qa-summary.md
         echo "## Browser Test Results" >> qa-summary.md
-        echo "- Chromium: ${{ needs.wordpress-qa.result }}" >> qa-summary.md
-        echo "- Firefox: ${{ needs.wordpress-qa.result }}" >> qa-summary.md
-        echo "- WebKit: ${{ needs.wordpress-qa.result }}" >> qa-summary.md
+        for browser in chromium firefox webkit; do
+          status="Unknown"
+          if [ -d "artifacts/playwright-report-$browser" ]; then
+            status="Success"
+            if grep -r "failed" "artifacts/playwright-report-$browser" > /dev/null; then
+              status="Failed"
+            fi
+          fi
+          echo "- $browser: $status" >> qa-summary.md
+        done
         
     - name: Upload QA Summary
       uses: actions/upload-artifact@v4
