@@ -24,7 +24,7 @@ jobs:
         
     - name: Install dependencies and Playwright browsers
       run: |
-        npm ci
+        npm install --legacy-peer-deps
         npx playwright install ${{ matrix.browser }}
       env:
         PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: false
