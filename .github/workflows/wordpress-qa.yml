@@ -1,16 +1,14 @@
-name: WordPress QA Tests
+name: WordPress Health Check
 
 on:
   push:
     branches: [ main ]
+  schedule:
+    - cron: '0 2 * * *'  # Run daily at 2 AM UTC
 
 jobs:
-  wordpress-qa:
+  wordpress-health-check:
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        browser: [chromium, firefox, webkit]
     
     steps:
     - name: Checkout code
@@ -24,71 +22,40 @@ jobs:
         
     - name: Install dependencies and Playwright browsers
       run: |
-        npm install --legacy-peer-deps
-        npx playwright install ${{ matrix.browser }}
-      env:
-        PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: false
+        echo "Installing dependencies..."
+        npm ci
+        echo "Installing Playwright browsers..."
+        npx playwright install --with-deps
 
-    - name: Run WordPress QA tests
-      run: npx playwright test --project=${{ matrix.browser }}
+    - name: Run WordPress Health Check
+      run: |
+        echo "Running WordPress health checks..."
+        npx playwright test tests/essential-tests.spec.js
       env:
         WP_BASE_URL: ${{ secrets.WP_BASE_URL || 'https://beratta.websearchpro.net' }}
         WP_ADMIN_USER: ${{ secrets.WP_ADMIN_USER || 'admin' }}
         WP_ADMIN_PASS: ${{ secrets.WP_ADMIN_PASS || 'taJdMiIvQdht4XGO%!ycgk6Z' }}
         
-    - name: Upload test results
+    - name: Upload Simple Report
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: playwright-report-${{ matrix.browser }}
-        path: test-results/
+        name: simple-health-report
+        path: simple-test-report.html
         retention-days: 30
         
-    - name: Upload screenshots
+    - name: Upload Playwright Report
       uses: actions/upload-artifact@v4
-      if: failure()
+      if: always()
       with:
-        name: screenshots-${{ matrix.browser }}
-        path: test-results/screenshots/
-        retention-days: 7
-
-  wordpress-qa-summary:
-    runs-on: ubuntu-latest
-    needs: wordpress-qa
-    if: always()
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Download all artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: artifacts
-
-    - name: Generate QA Report
-      run: |
-        echo "# WordPress QA Test Results" > qa-summary.md
-        echo "## Test Execution Summary" >> qa-summary.md
-        echo "- **Date:** $(date)" >> qa-summary.md
-        echo "- **Branch:** ${{ github.ref_name }}" >> qa-summary.md
-        echo "- **Commit:** ${{ github.sha }}" >> qa-summary.md
-        echo "" >> qa-summary.md
-        echo "## Browser Test Results" >> qa-summary.md
-        for browser in chromium firefox webkit; do
-          status="Unknown"
-          if [ -d "artifacts/playwright-report-$browser" ]; then
-            status="Success"
-            if grep -r "failed" "artifacts/playwright-report-$browser" > /dev/null; then
-              status="Failed"
-            fi
-          fi
-          echo "- $browser: $status" >> qa-summary.md
-        done
+        name: playwright-report
+        path: playwright-report/**
+        retention-days: 30
         
-    - name: Upload QA Summary
+    - name: Upload Test Results
       uses: actions/upload-artifact@v4
+      if: always()
       with:
-        name: qa-summary
-        path: qa-summary.md
+        name: test-results
+        path: test-results/**
         retention-days: 30

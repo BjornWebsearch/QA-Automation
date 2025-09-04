@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordPress Site Health Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .summary-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 5px solid;
+        }
+        
+        .summary-card.total { border-left-color: #007bff; }
+        .summary-card.passed { border-left-color: #28a745; }
+        .summary-card.failed { border-left-color: #dc3545; }
+        .summary-card.skipped { border-left-color: #ffc107; }
+        
+        .summary-card h3 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .summary-card.total h3 { color: #007bff; }
+        .summary-card.passed h3 { color: #28a745; }
+        .summary-card.failed h3 { color: #dc3545; }
+        .summary-card.skipped h3 { color: #ffc107; }
+        
+        .summary-card p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-badge.passed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-badge.failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-badge.skipped {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .test-results {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-results h2 {
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .test-item {
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .test-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .test-item.passed {
+            border-left: 5px solid #28a745;
+            background: #f8fff9;
+        }
+        
+        .test-item.failed {
+            border-left: 5px solid #dc3545;
+            background: #fff8f8;
+        }
+        
+        .test-item.skipped {
+            border-left: 5px solid #ffc107;
+            background: #fffef8;
+        }
+        
+        .test-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .test-title {
+            font-weight: 600;
+            font-size: 1.1em;
+            color: #333;
+        }
+        
+        .test-duration {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .test-description {
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .error-details {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #721c24;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #666;
+            border-top: 1px solid #eee;
+        }
+        
+        .recommendations {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .recommendations h3 {
+            color: #1976d2;
+            margin-bottom: 15px;
+        }
+        
+        .recommendations ul {
+            margin-left: 20px;
+        }
+        
+        .recommendations li {
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .summary {
+                grid-template-columns: 1fr;
+            }
+            
+            .test-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌐 WordPress Site Health Report</h1>
+            <p>Automated Quality Assurance Test Results</p>
+            <p>Generated on 9/4/2025, 10:17:36 AM</p>
+        </div>
+        
+        <div class="summary">
+            <div class="summary-card total">
+                <h3>12</h3>
+                <p>Total Tests</p>
+            </div>
+            <div class="summary-card passed">
+                <h3>10</h3>
+                <p>Passed</p>
+            </div>
+            <div class="summary-card failed">
+                <h3>2</h3>
+                <p>Failed</p>
+            </div>
+            <div class="summary-card skipped">
+                <h3>0</h3>
+                <p>Skipped</p>
+            </div>
+        </div>
+        
+        
+        <div class="recommendations">
+          <h3>✅ Good! Your WordPress site is mostly working well</h3>
+          <ul>
+            <li>Most tests passed (83% success rate)</li>
+            <li>Some minor issues detected</li>
+            <li>Review failed tests below for details</li>
+            <li>Consider addressing issues when convenient</li>
+          </ul>
+        </div>
+      
+        
+        <div class="test-results">
+            <h2>📋 Test Results</h2>
+            
+      <div class="test-item passed">
+        <div class="test-header">
+          <div class="test-title">🔐 Admin login page is accessible</div>
+          <div>
+            <span class="status-badge passed">passed</span>
+            <span class="test-duration">5.11s</span>
+          </div>
+        </div>
+        <div class="test-description">Verifies that users can log into the WordPress admin area securely.</div>
+        
+      </div>
+    
+      <div class="test-item passed">
+        <div class="test-header">
+          <div class="test-title">🌐 Website loads successfully</div>
+          <div>
+            <span class="status-badge passed">passed</span>
+            <span class="test-duration">5.55s</span>
+          </div>
+        </div>
+        <div class="test-description">Tests WordPress functionality and features.</div>
+        
+      </div>
+    
+      <div class="test-item passed">
+        <div class="test-header">
+          <div class="test-title">👤 Admin login works with valid credentials</div>
+          <div>
+            <span class="status-badge passed">passed</span>
+            <span class="test-duration">14.63s</span>
+          </div>
+        </div>
+        <div class="test-description">Verifies that users can log into the WordPress admin area securely.</div>
+        
+      </div>
+    
+      <div class="test-item passed">
+        <div class="test-header">
+          <div class="test-title">📊 dashboard loads after login</div>
+          <div>
+            <span class="status-badge passed">passed</span>
+            <span class="test-duration">16.46s</span>
+          </div>
+        </div>
+        <div class="test-description">Verifies that users can log into the WordPress admin area securely.</div>
+        
+      </div>
+    
+      <div class="test-item passed">
+        <div class="test-header">
+          <div class="test-title">📄 Pages section is accessible</div>
+          <div>
+            <span class="status-badge passed">passed</span>
+            <span class="test-duration">16.4s</span>
+          </div>
+        </div>
+        <div class="test-description">Tests WordPress functionality and features.</div>
+        
+      </div>
+    
+      <div class="test-item passed">
+        <div class="test-header">
+          <div class="test-title">📝 Posts section is accessible</div>
+          <div>
+            <span class="status-badge passed">passed</span>
+            <span class="test-duration">17.31s</span>
+          </div>
+        </div>
+        <div class="test-description">Tests WordPress functionality and features.</div>
+        
+      </div>
+    
+      <div class="test-item failed">
+        <div class="test-header">
+          <div class="test-title">🔗 REST API is working</div>
+          <div>
+            <span class="status-badge failed">failed</span>
+            <span class="test-duration">2.11s</span>
+          </div>
+        </div>
+        <div class="test-description">Tests the WordPress REST API and backend functionality.</div>
+        
+        <div class="error-details">
+          <strong>Error Details:</strong><br>
+          Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+Expected: [32m200[39m
+Received: [31m403[39m
+        </div>
+      
+      </div>
+    
+      <div class="test-item passed">
+        <div class="test-header">
+          <div class="test-title">🔌 Plugins section is accessible</div>
+          <div>
+            <span class="status-badge passed">passed</span>
+            <span class="test-duration">17.18s</span>
+          </div>
+        </div>
+        <div class="test-description">Tests WordPress functionality and features.</div>
+        
+      </div>
+    
+      <div class="test-item passed">
+        <div class="test-header">
+          <div class="test-title">🎨 Themes section is accessible</div>
+          <div>
+            <span class="status-badge passed">passed</span>
+            <span class="test-duration">22.46s</span>
+          </div>
+        </div>
+        <div class="test-description">Tests WordPress functionality and features.</div>
+        
+      </div>
+    
+      <div class="test-item passed">
+        <div class="test-header">
+          <div class="test-title">⚡ Website loads within reasonable time</div>
+          <div>
+            <span class="status-badge passed">passed</span>
+            <span class="test-duration">11.78s</span>
+          </div>
+        </div>
+        <div class="test-description">Tests WordPress functionality and features.</div>
+        
+      </div>
+    
+      <div class="test-item failed">
+        <div class="test-header">
+          <div class="test-title">📱 Website is mobile-friendly</div>
+          <div>
+            <span class="status-badge failed">failed</span>
+            <span class="test-duration">14.84s</span>
+          </div>
+        </div>
+        <div class="test-description">Tests WordPress functionality and features.</div>
+        
+        <div class="error-details">
+          <strong>Error Details:</strong><br>
+          Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
+
+Expected: <= [32m395[39m
+Received:    [31m436[39m
+        </div>
+      
+      </div>
+    
+      <div class="test-item passed">
+        <div class="test-header">
+          <div class="test-title">⚙️ Settings section is accessible</div>
+          <div>
+            <span class="status-badge passed">passed</span>
+            <span class="test-duration">21.09s</span>
+          </div>
+        </div>
+        <div class="test-description">Tests WordPress functionality and features.</div>
+        
+      </div>
+    
+        </div>
+        
+        <div class="footer">
+            <p>This report was generated automatically by the WordPress QA Test Suite</p>
+            <p>For technical support, please contact your development team</p>
+        </div>
+    </div>
+</body>
+</html>

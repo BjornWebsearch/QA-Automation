@@ -1,20 +1,15 @@
 {
-  "name": "wordpress-qa-tests",
-  "version": "1.0.0",
-  "description": "Automated QA tests for WordPress site",
+  "name": "wordpress-health-check",
+  "version": "2.0.0",
+  "description": "Simple WordPress site health check tool for non-technical users",
   "scripts": {
-    "test": "playwright test",
-    "test:auth": "playwright test tests/auth/",
-    "test:dashboard": "playwright test tests/dashboard/",
-    "test:content": "playwright test tests/content/",
-    "test:theme": "playwright test tests/theme/",
-    "test:plugins": "playwright test tests/plugins/",
-    "test:api": "playwright test tests/api/",
+    "test": "playwright test tests/essential-tests.spec.js",
     "test:ui": "playwright test --ui",
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",
     "test:report": "playwright show-report",
-    "install:browsers": "playwright install"
+    "health-check": "./run-simple-tests.sh",
+    "install:browsers": "playwright install --with-deps"
   },
   "dependencies": {
     "@playwright/test": "^1.55.0"
@@ -22,11 +17,12 @@
   "devDependencies": {},
   "keywords": [
     "wordpress",
-    "qa",
+    "health-check",
     "testing",
     "playwright",
-    "automation"
+    "user-friendly",
+    "non-technical"
   ],
-  "author": "QA Team",
+  "author": "WordPress Health Check Team",
   "license": "MIT"
 }
